@@ -1,9 +1,14 @@
 class Livre:
-    def __init__(self, id=None, titre=None, auteur=None, prix=None):
-        self.id = id
+    def __init__(self, id_livre=None, titre="", auteur="", prix=0.0):
+        self.id = id_livre
         self.titre = titre
         self.auteur = auteur
-        self.prix = prix
+        self.prix = float(prix)
 
-    def __str__(self):
-        return f"Livre(ID={self.id}, Titre=\"{self.titre}\", Auteur=\"{self.auteur}\", Prix={self.prix})"
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "titre": self.titre,
+            "auteur": self.auteur,
+            "prix": self.prix
+        }

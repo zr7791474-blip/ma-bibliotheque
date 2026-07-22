@@ -1,47 +1,56 @@
-from db import DB 
-from livre import Livre 
+from db import get_connection
+from livre import Livre
 
-class LivreDAO: 
+class LivreDAO:
+    @staticmethod
+    def get_all():
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT id, titre, auteur, prix FROM livres ORDER BY id DESC")
+        rows = cursor.fetchall()
+        conn.close()
+        return [Livre(row['id'], row['titre'], row['auteur'], row['prix']) for row in rows]
 
-    def ajouter(self, livre): 
-        conn = DB.get_connection() 
-        if conn: 
-            cursor = conn.cursor() 
-            try: 
-                sql = "INSERT INTO livre (titre, auteur, prix) VALUES (%s, %s, %s)" 
-                val = (livre.titre, livre.auteur, livre.prix) 
-                cursor.execute(sql, val) 
-                conn.commit() 
-            except Exception as e: 
-                print(f"Erreur lors de l'ajout : {e}") 
-                conn.rollback() 
-            finally: 
-                cursor.close() 
-                conn.close() 
+    @staticmethod
+    def get_by_id(livre_id):
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT id, titre, auteur, prix FROM livres WHERE id = ?", (livre_id,))
+        row = cursor.fetchone()
+        conn.close()
+        if row:
+            return Livre(row['id'], row['titre'], row['auteur'], row['prix'])
+        return None
 
-    def afficher(self): 
-        conn = DB.get_connection() 
-        livres = []
-        if conn:
-            cursor = conn.cursor() 
-            cursor.execute("SELECT * FROM livre") 
-            rows = cursor.fetchall() 
-            for row in rows: 
-                livres.append(Livre(row[0], row[1], row[2], row[3])) 
-            conn.close() 
-        return livres 
+    @staticmethod
+    def add(livre):
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO livres (titre, auteur, prix) VALUES (?, ?, ?)", 
+                       (livre.titre, livre.auteur, livre.prix))
+        conn.commit()
+        new_id = cursor.lastrowid
+        conn.close()
+        livre.id = new_id
+        return livre
 
-    def supprimer(self, id): 
-        conn = DB.get_connection() 
-        if conn: 
-            cursor = conn.cursor() 
-            try: 
-                sql = "DELETE FROM livre WHERE id = %s" 
-                cursor.execute(sql, (id,)) 
-                conn.commit() 
-            except Exception as e: 
-                print(f"Erreur lors de la suppression : {e}") 
-                conn.rollback() 
-            finally: 
-                cursor.close() 
-                conn.close()
+    @staticmethod
+    def update(livre):
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute("UPDATE livres SET titre = ?, auteur = ?, prix = ? WHERE id = ?", 
+                       (livre.titre, livre.auteur, livre.prix, livre.id))
+        conn.commit()
+        updated = cursor.rowcount > 0
+        conn.close()
+        return updated
+
+    @staticmethod
+    def delete(livre_id):
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM livres WHERE id = ?", (livre_id,))
+        conn.commit()
+        deleted = cursor.rowcount > 0
+        conn.close()
+        return deleted

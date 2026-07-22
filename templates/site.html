@@ -30,7 +30,7 @@
             margin: 0;
             padding: 0;
             background: linear-gradient(180deg, rgba(10, 15, 29, 0.82) 0%, rgba(5, 8, 16, 0.92) 100%),
-                        url('/public/hero/background.jpg') no-repeat center center fixed;
+             url("{{ url_for('static', filename='hero/background.jpg') }}") no-repeat center center fixed;
             background-size: cover;
             overflow-x: hidden;
         }
